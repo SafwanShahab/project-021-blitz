@@ -1,0 +1,3 @@
+echo "int yywrap() { return 1; }" > libfl.c
+gcc -c libfl.c
+ar rcs libfl.a libfl.o
