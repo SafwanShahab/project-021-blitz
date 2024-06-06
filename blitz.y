@@ -115,6 +115,12 @@ expression:
     | expression OP_MINUS expression { $$ = createNode("sub", $1, $3); printf("expression -> expression OP_MINUS expression\n"); }
     | expression OP_MULTIPLY expression { $$ = createNode("mul", $1, $3); printf("expression -> expression OP_MULTIPLY expression\n"); }
     | expression OP_DIVIDE expression { $$ = createNode("div", $1, $3); printf("expression -> expression OP_DIVIDE expression\n"); }
+    | expression OP_EQUAL expression { $$ = createNode("equal", $1, $3); printf("expression -> expression OP_EQUAL expression\n"); }
+    | expression OP_NOT_EQUAL expression { $$ = createNode("not_equal", $1, $3); printf("expression -> expression OP_NOT_EQUAL expression\n"); }
+    | expression OP_LESS_THAN expression { $$ = createNode("less_than", $1, $3); printf("expression -> expression OP_LESS_THAN expression\n"); }
+    | expression OP_GREATER_THAN expression { $$ = createNode("greater_than", $1, $3); printf("expression -> expression OP_GREATER_THAN expression\n"); }
+    | expression OP_LESS_EQUAL expression { $$ = createNode("less_equal", $1, $3); printf("expression -> expression OP_LESS_EQUAL expression\n"); }
+    | expression OP_GREATER_EQUAL expression { $$ = createNode("greater_equal", $1, $3); printf("expression -> expression OP_GREATER_EQUAL expression\n"); }
     | LPAREN expression RPAREN { $$ = $2; printf("expression -> LPAREN expression RPAREN\n"); }
     ;
 
