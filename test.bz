@@ -1,4 +1,4 @@
-echo 'num x;
+num x;
 int y;
 x := 5;
 if (x > y) {
@@ -6,4 +6,4 @@ if (x > y) {
 } else {
     read(y);
 }
-stop;' > test.bz
+stop;

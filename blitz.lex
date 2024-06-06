@@ -26,8 +26,9 @@ NUM     {DIGIT}+
 "-"                             { printf("OP_MINUS\n"); }
 "*"                             { printf("OP_MULTIPLY\n"); }
 "/"                             { printf("OP_DIVIDE\n"); }
-"="                             { printf("OP_ASSIGN\n"); }
-"=="                            { printf("OP_EQUAL\n"); }
+":="                            { printf("OP_ASSIGN\n"); }
+"="                             { printf("OP_EQUAL\n"); }
+"=="                            { printf("OP_EQUAL_EQUAL\n"); }
 "!="                            { printf("OP_NOT_EQUAL\n"); }
 "<"                             { printf("OP_LESS_THAN\n"); }
 ">"                             { printf("OP_GREATER_THAN\n"); }
