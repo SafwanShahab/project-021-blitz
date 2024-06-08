@@ -90,13 +90,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 38 "blitz.y"
+#line 72 "blitz.y"
 
     int num;
     char* str;
-    struct ASTNode* node;
 
-#line 100 "blitz.tab.h"
+#line 99 "blitz.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

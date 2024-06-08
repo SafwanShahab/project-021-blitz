@@ -2,29 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct ASTNode {
-    char *token;
-    struct ASTNode *left;
-    struct ASTNode *right;
-} ASTNode;
-
-ASTNode* createNode(const char* token, ASTNode* left, ASTNode* right) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
-    node->token = strdup(token);
-    node->left = left;
-    node->right = right;
-    printf("Created node: %s\n", token);  // Debugging print
-    return node;
-}
-
-void printAST(ASTNode* node, int level) {
-    if (node == NULL) return;
-    for (int i = 0; i < level; i++) printf("  ");
-    printf("%s\n", node->token);
-    printAST(node->left, level + 1);
-    printAST(node->right, level + 1);
-}
+#include <stdarg.h>
+#include "mil.h"
 
 void yyerror(const char* s);
 int yylex(void);
@@ -32,13 +11,67 @@ int yylex(void);
 extern FILE* yyin;
 extern int yylineno;
 extern char* yytext;
-extern int col_num;  // Declare col_num here
+
+char* strdup_safe(const char* s) {
+    size_t len = strlen(s) + 1;
+    char* copy = (char*)malloc(len);
+    if (copy) {
+        memcpy(copy, s, len);
+    }
+    return copy;
+}
+
+void emit(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    vprintf(format, args);
+    va_end(args);
+}
+
+void emit_declaration(const char* var, const char* type) {
+    emit("DECLARE %s %s\n", var, type);
+}
+
+void emit_assignment(const char* var, const char* expr) {
+    emit("ASSIGN %s %s\n", var, expr);
+}
+
+void emit_if_start(const char* expr) {
+    emit("IF %s THEN\n", expr);
+}
+
+void emit_if_end() {
+    emit("ENDIF\n");
+}
+
+void emit_else_start() {
+    emit("ELSE\n");
+}
+
+void emit_while_start(const char* expr) {
+    emit("WHILE %s DO\n", expr);
+}
+
+void emit_while_end() {
+    emit("ENDWHILE\n");
+}
+
+void emit_read(const char* var) {
+    emit("READ %s\n", var);
+}
+
+void emit_write(const char* expr) {
+    emit("WRITE %s\n", expr);
+}
+
+void emit_stop() {
+    emit("STOP\n");
+}
 %}
 
 %union {
     int num;
     char* str;
-    struct ASTNode* node;
 }
 
 %token <num> NUMBER
@@ -48,9 +81,9 @@ extern int col_num;  // Declare col_num here
 %token OP_PLUS OP_MINUS OP_MULTIPLY OP_DIVIDE
 %token SEMICOLON COMMA LPAREN RPAREN LBRACE RBRACE
 
-%type <node> assignment if_statement while_statement write_statement expression
-%type <node> declaration read_statement stop_statement
-%type <node> statement statement_list program
+%type <str> assignment if_statement while_statement write_statement expression
+%type <str> declaration read_statement stop_statement
+%type <str> statement statement_list
 
 %right OP_ASSIGN
 %left OP_PLUS OP_MINUS
@@ -60,74 +93,121 @@ extern int col_num;  // Declare col_num here
 %%
 
 program:
-    statement_list { printAST($1, 0); printf("program -> statement_list\n"); }
-    ;
-
-statement_list:
-    statement { $$ = $1; printf("statement_list -> statement\n"); }
-    | statement_list statement { $$ = createNode("statement_list", $1, $2); printf("statement_list -> statement_list statement\n"); }
+    program statement
+    | /* empty */
     ;
 
 statement:
-    declaration { $$ = $1; printf("statement -> declaration\n"); }
-    | assignment { $$ = $1; printf("statement -> assignment\n"); }
-    | if_statement { $$ = $1; printf("statement -> if_statement\n"); }
-    | while_statement { $$ = $1; printf("statement -> while_statement\n"); }
-    | read_statement { $$ = $1; printf("statement -> read_statement\n"); }
-    | write_statement { $$ = $1; printf("statement -> write_statement\n"); }
-    | stop_statement { $$ = $1; printf("statement -> stop_statement\n"); }
+    declaration
+    | assignment
+    | if_statement
+    | while_statement
+    | read_statement
+    | write_statement
+    | stop_statement
     ;
 
 declaration:
-    KEYWORD_INT IDENTIFIER SEMICOLON { $$ = createNode("declaration", createNode($2, NULL, NULL), NULL); printf("declaration -> KEYWORD_INT IDENTIFIER SEMICOLON\n"); }
-    | KEYWORD_NUM IDENTIFIER SEMICOLON { $$ = createNode("declaration", createNode($2, NULL, NULL), NULL); printf("declaration -> KEYWORD_NUM IDENTIFIER SEMICOLON\n"); }
+    KEYWORD_INT IDENTIFIER SEMICOLON {
+        emit_declaration($2, "INT");
+    }
+    | KEYWORD_NUM IDENTIFIER SEMICOLON {
+        emit_declaration($2, "NUM");
+    }
     ;
 
 assignment:
-    IDENTIFIER OP_ASSIGN expression SEMICOLON { $$ = createNode("assignment", createNode($1, NULL, NULL), $3); printf("assignment -> IDENTIFIER OP_ASSIGN expression SEMICOLON\n"); }
+    IDENTIFIER OP_ASSIGN expression SEMICOLON {
+        emit_assignment($1, $3);
+    }
     ;
 
 if_statement:
-    KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE { $$ = createNode("if_statement", $3, $6); printf("if_statement -> KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE\n"); }
-    | KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE KEYWORD_ELSE LBRACE statement_list RBRACE { $$ = createNode("if_else_statement", $3, createNode("else", $6, $10)); printf("if_statement -> KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE KEYWORD_ELSE LBRACE statement_list RBRACE\n"); }
+    KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE {
+        emit_if_start($3);
+        $$ = $6;
+        emit_if_end();
+    }
+    | KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE KEYWORD_ELSE LBRACE statement_list RBRACE {
+        emit_if_start($3);
+        $$ = $6;
+        emit_else_start();
+        $$ = $10;
+        emit_if_end();
+    }
     ;
 
 while_statement:
-    KEYWORD_WHILE LPAREN expression RPAREN LBRACE statement_list RBRACE { $$ = createNode("while_statement", $3, $6); printf("while_statement -> KEYWORD_WHILE LPAREN expression RPAREN LBRACE statement_list RBRACE\n"); }
+    KEYWORD_WHILE LPAREN expression RPAREN LBRACE statement_list RBRACE {
+        emit_while_start($3);
+        $$ = $6;
+        emit_while_end();
+    }
     ;
 
 read_statement:
-    KEYWORD_READ LPAREN IDENTIFIER RPAREN SEMICOLON { $$ = createNode("read_statement", createNode($3, NULL, NULL), NULL); printf("read_statement -> KEYWORD_READ LPAREN IDENTIFIER RPAREN SEMICOLON\n"); }
+    KEYWORD_READ LPAREN IDENTIFIER RPAREN SEMICOLON {
+        emit_read($3);
+    }
     ;
 
 write_statement:
-    KEYWORD_WRITE LPAREN expression RPAREN SEMICOLON { $$ = createNode("write_statement", $3, NULL); printf("write_statement -> KEYWORD_WRITE LPAREN expression RPAREN SEMICOLON\n"); }
+    KEYWORD_WRITE LPAREN expression RPAREN SEMICOLON {
+        emit_write($3);
+    }
     ;
 
 stop_statement:
-    KEYWORD_STOP SEMICOLON { $$ = createNode("stop_statement", NULL, NULL); printf("stop_statement -> KEYWORD_STOP SEMICOLON\n"); }
+    KEYWORD_STOP SEMICOLON {
+        emit_stop();
+    }
+    ;
+
+statement_list:
+    statement
+    | statement_list statement
     ;
 
 expression:
-    IDENTIFIER { $$ = createNode($1, NULL, NULL); printf("expression -> IDENTIFIER\n"); }
-    | NUMBER { $$ = createNode(yytext, NULL, NULL); printf("expression -> NUMBER\n"); }
-    | expression OP_PLUS expression { $$ = createNode("add", $1, $3); printf("expression -> expression OP_PLUS expression\n"); }
-    | expression OP_MINUS expression { $$ = createNode("sub", $1, $3); printf("expression -> expression OP_MINUS expression\n"); }
-    | expression OP_MULTIPLY expression { $$ = createNode("mul", $1, $3); printf("expression -> expression OP_MULTIPLY expression\n"); }
-    | expression OP_DIVIDE expression { $$ = createNode("div", $1, $3); printf("expression -> expression OP_DIVIDE expression\n"); }
-    | expression OP_EQUAL expression { $$ = createNode("equal", $1, $3); printf("expression -> expression OP_EQUAL expression\n"); }
-    | expression OP_NOT_EQUAL expression { $$ = createNode("not_equal", $1, $3); printf("expression -> expression OP_NOT_EQUAL expression\n"); }
-    | expression OP_LESS_THAN expression { $$ = createNode("less_than", $1, $3); printf("expression -> expression OP_LESS_THAN expression\n"); }
-    | expression OP_GREATER_THAN expression { $$ = createNode("greater_than", $1, $3); printf("expression -> expression OP_GREATER_THAN expression\n"); }
-    | expression OP_LESS_EQUAL expression { $$ = createNode("less_equal", $1, $3); printf("expression -> expression OP_LESS_EQUAL expression\n"); }
-    | expression OP_GREATER_EQUAL expression { $$ = createNode("greater_equal", $1, $3); printf("expression -> expression OP_GREATER_EQUAL expression\n"); }
-    | LPAREN expression RPAREN { $$ = $2; printf("expression -> LPAREN expression RPAREN\n"); }
+    IDENTIFIER {
+        $$ = strdup_safe($1);
+    }
+    | NUMBER {
+        $$ = strdup_safe(yytext);
+    }
+    | expression OP_PLUS expression {
+        printf("ADD %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | expression OP_MINUS expression {
+        printf("SUB %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | expression OP_MULTIPLY expression {
+        printf("MUL %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | expression OP_DIVIDE expression {
+        printf("DIV %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | expression OP_LESS_THAN expression {
+        printf("LESS_THAN %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | expression OP_GREATER_THAN expression {
+        printf("GREATER_THAN %s %s\n", $1, $3);
+        $$ = strdup_safe("RESULT");
+    }
+    | LPAREN expression RPAREN {
+        $$ = $2;
+    }
     ;
 
 %%
 
 void yyerror(const char* s) {
-    fprintf(stderr, "Error: %s at line %d, column %d\n", s, yylineno, col_num);
+    fprintf(stderr, "Error: %s at line %d\n", s, yylineno);
 }
 
 int main(int argc, char **argv) {
