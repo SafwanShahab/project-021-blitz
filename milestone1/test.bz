@@ -1,0 +1,10 @@
+num x;
+int y;
+x := 5;
+if (x > y) {
+    write(x);
+} else {
+    read(y);
+} 
+stop;
+
