@@ -1,8 +1,12 @@
 %{
-#include "mil.h"
+#include "blitz.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// Declare the global variables as extern
+extern int brace_count;
+extern int paren_count;
 
 int line_num = 1;
 int col_num = 1;
@@ -14,44 +18,40 @@ ID      {LETTER}({LETTER}|{DIGIT})*
 NUM     {DIGIT}+
 
 %%
-
-"int"                           { col_num += yyleng; return KEYWORD_INT; }
-"num"                           { col_num += yyleng; return KEYWORD_NUM; }
-"if"                            { col_num += yyleng; return KEYWORD_IF; }
-"else"                          { col_num += yyleng; return KEYWORD_ELSE; }
-"while"                         { col_num += yyleng; return KEYWORD_WHILE; }
-"stop"                          { col_num += yyleng; return KEYWORD_STOP; }
-"read"                          { col_num += yyleng; return KEYWORD_READ; }
-"write"                         { col_num += yyleng; return KEYWORD_WRITE; }
-"+"                             { col_num += yyleng; return OP_PLUS; }
-"-"                             { col_num += yyleng; return OP_MINUS; }
-"*"                             { col_num += yyleng; return OP_MULTIPLY; }
-"/"                             { col_num += yyleng; return OP_DIVIDE; }
-":="                            { col_num += yyleng; return OP_ASSIGN; }
-"="                             { col_num += yyleng; return OP_EQUAL; }
-"=="                            { col_num += yyleng; return OP_EQUAL_EQUAL; }
-"!="                            { col_num += yyleng; return OP_NOT_EQUAL; }
-"<"                             { col_num += yyleng; return OP_LESS_THAN; }
-">"                             { col_num += yyleng; return OP_GREATER_THAN; }
-"<="                            { col_num += yyleng; return OP_LESS_EQUAL; }
-">="                            { col_num += yyleng; return OP_GREATER_EQUAL; }
-";"                             { col_num += yyleng; return SEMICOLON; }
-","                             { col_num += yyleng; return COMMA; }
-"("                             { col_num += yyleng; return LPAREN; }
-")"                             { col_num += yyleng; return RPAREN; }
-"{"                             { col_num += yyleng; return LBRACE; }
-"}"                             { col_num += yyleng; return RBRACE; }
-{ID}                            { col_num += yyleng; yylval.str = strdup(yytext); return IDENTIFIER; }
-{NUM}                           { col_num += yyleng; yylval.num = atoi(yytext); return NUMBER_CONST; }
-"//".*                          { /* Ignore comments */ }
+"void"                          { col_num += yyleng; printf("KEYWORD_VOID\n"); }
+"int"                           { col_num += yyleng; printf("KEYWORD_INT\n"); }
+"num"                           { col_num += yyleng; printf("KEYWORD_NUM\n"); }
+"if"                            { col_num += yyleng; printf("KEYWORD_IF\n"); }
+"else"                          { col_num += yyleng; printf("KEYWORD_ELSE\n"); }
+"while"                         { col_num += yyleng; printf("KEYWORD_WHILE\n"); }
+"stop"                          { col_num += yyleng; printf("KEYWORD_STOP\n"); }
+"read"                          { col_num += yyleng; printf("KEYWORD_READ\n"); }
+"write"                         { col_num += yyleng; printf("KEYWORD_WRITE\n"); }
+"+"                             { col_num += yyleng; printf("OP_PLUS\n"); }
+"-"                             { col_num += yyleng; printf("OP_MINUS\n"); }
+"*"                             { col_num += yyleng; printf("OP_MULTIPLY\n"); }
+"/"                             { col_num += yyleng; printf("OP_DIVIDE\n"); }
+":="                            { col_num += yyleng; printf("OP_ASSIGN\n"); }
+"="                             { col_num += yyleng; printf("OP_EQUAL\n"); }
+"=="                            { col_num += yyleng; printf("OP_EQUAL_EQUAL\n"); }
+"!="                            { col_num += yyleng; printf("OP_NOT_EQUAL\n"); }
+"<"                             { col_num += yyleng; printf("OP_LESS_THAN\n"); }
+">"                             { col_num += yyleng; printf("OP_GREATER_THAN\n"); }
+"<="                            { col_num += yyleng; printf("OP_LESS_EQUAL\n"); }
+">="                            { col_num += yyleng; printf("OP_GREATER_EQUAL\n"); }
+";"                             { col_num += yyleng; printf("SEMICOLON\n"); }
+","                             { col_num += yyleng; printf("COMMA\n"); }
+"("                             { col_num += yyleng; printf("LPAREN\n"); paren_count++; }
+")"                             { col_num += yyleng; printf("RPAREN\n"); paren_count--; }
+"{"                             { col_num += yyleng; printf("LBRACE\n"); brace_count++; }
+"}"                             { col_num += yyleng; printf("RBRACE\n"); brace_count--; }
+{ID}                            { col_num += yyleng; printf("IDENTIFIER (%s)\n", yytext); }
+{NUM}                           { col_num += yyleng; printf("NUMBER (%s)\n", yytext); }
+"//".*                          { col_num += yyleng; /* Ignore comments */ }
 "\n"                            { line_num++; col_num = 1; }
 [ \t\r]+                        { col_num += yyleng; /* Ignore whitespace */ }
-.                               { 
-                                  fprintf(stderr, "Error at line %d, column %d: unrecognized symbol \"%s\"\n", line_num, col_num, yytext); 
-                                  exit(1); 
-                                }
+.                               { printf("Error: unrecognized symbol \"%s\" at line %d, column %d\n", yytext, line_num, col_num); col_num += yyleng; exit(1); }
 %%
-
 int yywrap() {
     return 1;
 }
