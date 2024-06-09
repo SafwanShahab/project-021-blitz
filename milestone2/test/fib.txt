@@ -1,4 +1,3 @@
-// Calculate the nth Fibonacci number
 num fib(num n) {
     if (n <= 1) {
         return n;
@@ -7,7 +6,3 @@ num fib(num n) {
     }
 }
 
-// Example usage
-num result;
-result := fib(10);
-ptline(result);

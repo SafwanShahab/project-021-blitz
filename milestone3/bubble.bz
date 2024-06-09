@@ -1,11 +1,9 @@
-// Bubble sort algorithm
 void bubbleSort(num[] arr) {
     num n := arr.length;
     num i, j;
     for (i := 0; i < n - 1; i++) {
         for (j := 0; j < n - i - 1; j++) {
             if (arr[j] > arr[j + 1]) {
-                // Swap arr[j] and arr[j + 1]
                 num temp := arr[j];
                 arr[j] := arr[j + 1];
                 arr[j + 1] := temp;
@@ -14,15 +12,3 @@ void bubbleSort(num[] arr) {
     }
 }
 
-// Example usage
-num[] data = new num[5];
-data[0] := 64;
-data[1] := 34;
-data[2] := 25;
-data[3] := 12;
-data[4] := 22;
-
-bubbleSort(data);
-for (num k := 0; k < data.length; k++) {
-    ptline(data[k]);
-}
