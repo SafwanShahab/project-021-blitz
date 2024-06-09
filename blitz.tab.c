@@ -73,6 +73,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include "mil.h"
 
 void yyerror(const char* s);
 int yylex(void);
@@ -81,63 +82,8 @@ extern FILE* yyin;
 extern int yylineno;
 extern char* yytext;
 
-char* strdup_safe(const char* s) {
-    size_t len = strlen(s) + 1;
-    char* copy = (char*)malloc(len);
-    if (copy) {
-        memcpy(copy, s, len);
-    }
-    return copy;
-}
 
-void emit(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}
-
-void emit_declaration(const char* var, const char* type) {
-    emit("DECLARE %s %s\n", var, type);
-}
-
-void emit_assignment(const char* var, const char* expr) {
-    emit("ASSIGN %s %s\n", var, expr);
-}
-
-void emit_if_start(const char* expr) {
-    emit("IF %s THEN\n", expr);
-}
-
-void emit_if_end() {
-    emit("ENDIF\n");
-}
-
-void emit_else_start() {
-    emit("ELSE\n");
-}
-
-void emit_while_start(const char* expr) {
-    emit("WHILE %s DO\n", expr);
-}
-
-void emit_while_end() {
-    emit("ENDWHILE\n");
-}
-
-void emit_read(const char* var) {
-    emit("READ %s\n", var);
-}
-
-void emit_write(const char* expr) {
-    emit("WRITE %s\n", expr);
-}
-
-void emit_stop() {
-    emit("STOP\n");
-}
-
-#line 141 "blitz.tab.c"
+#line 87 "blitz.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -168,7 +114,7 @@ enum yysymbol_kind_t
   YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
-  YYSYMBOL_NUMBER = 3,                     /* NUMBER  */
+  YYSYMBOL_NUMBER_CONST = 3,               /* NUMBER_CONST  */
   YYSYMBOL_IDENTIFIER = 4,                 /* IDENTIFIER  */
   YYSYMBOL_KEYWORD_INT = 5,                /* KEYWORD_INT  */
   YYSYMBOL_KEYWORD_NUM = 6,                /* KEYWORD_NUM  */
@@ -207,7 +153,8 @@ enum yysymbol_kind_t
   YYSYMBOL_write_statement = 39,           /* write_statement  */
   YYSYMBOL_stop_statement = 40,            /* stop_statement  */
   YYSYMBOL_statement_list = 41,            /* statement_list  */
-  YYSYMBOL_expression = 42                 /* expression  */
+  YYSYMBOL_condition = 42,                 /* condition  */
+  YYSYMBOL_expression = 43                 /* expression  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -535,16 +482,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   125
+#define YYLAST   118
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  31
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  12
+#define YYNNTS  13
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  30
+#define YYNRULES  34
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  70
+#define YYNSTATES  79
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   285
@@ -596,10 +543,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    95,    95,    96,   100,   101,   102,   103,   104,   105,
-     106,   110,   113,   119,   125,   130,   140,   148,   154,   160,
-     166,   167,   171,   174,   177,   181,   185,   189,   193,   197,
-     201
+       0,    41,    41,    42,    46,    47,    48,    49,    50,    51,
+      52,    56,    59,    65,    81,    86,    96,   104,   114,   120,
+     126,   127,   131,   135,   139,   143,   147,   151,   158,   165,
+     168,   172,   176,   180,   184
 };
 #endif
 
@@ -615,8 +562,8 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "NUMBER", "IDENTIFIER",
-  "KEYWORD_INT", "KEYWORD_NUM", "KEYWORD_IF", "KEYWORD_ELSE",
+  "\"end of file\"", "error", "\"invalid token\"", "NUMBER_CONST",
+  "IDENTIFIER", "KEYWORD_INT", "KEYWORD_NUM", "KEYWORD_IF", "KEYWORD_ELSE",
   "KEYWORD_WHILE", "KEYWORD_STOP", "KEYWORD_READ", "KEYWORD_WRITE",
   "OP_ASSIGN", "OP_EQUAL", "OP_EQUAL_EQUAL", "OP_NOT_EQUAL",
   "OP_LESS_THAN", "OP_GREATER_THAN", "OP_LESS_EQUAL", "OP_GREATER_EQUAL",
@@ -624,7 +571,7 @@ static const char *const yytname[] =
   "LPAREN", "RPAREN", "LBRACE", "RBRACE", "$accept", "program",
   "statement", "declaration", "assignment", "if_statement",
   "while_statement", "read_statement", "write_statement", "stop_statement",
-  "statement_list", "expression", YY_NULLPTR
+  "statement_list", "condition", "expression", YY_NULLPTR
 };
 
 static const char *
@@ -634,7 +581,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-36)
+#define YYPACT_NINF (-61)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -642,19 +589,20 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 #define YYTABLE_NINF (-1)
 
 #define yytable_value_is_error(Yyn) \
-  ((Yyn) == YYTABLE_NINF)
+  0
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -36,    59,   -36,    -8,    10,    17,    15,    31,     8,    35,
-      47,   -36,   -36,   -36,   -36,   -36,   -36,   -36,   -36,    16,
-      50,    57,    16,    16,   -36,    33,    16,   -36,   -36,    16,
-     100,   -36,   -36,    55,    63,    62,    71,    79,    16,    16,
-      16,    16,    16,    16,   -36,    69,    75,    80,    81,   -36,
-      30,    30,    22,    22,    39,    39,   104,   104,   -36,   -36,
-     -36,    -3,     6,    36,   -36,   -36,    83,   104,    19,   -36
+     -61,    68,   -61,    -6,    39,    40,    22,    27,    42,    28,
+      38,   -61,   -61,   -61,   -61,   -61,   -61,   -61,   -61,     6,
+      57,    72,     6,     6,   -61,    62,     6,   -61,   -61,     6,
+      87,   -61,   -61,    70,    67,    76,    77,    71,    79,     6,
+       6,     6,     6,   -61,    84,     6,     6,     6,     6,     6,
+       6,    85,    81,    90,   -61,     2,     2,   -61,   -61,    52,
+     -19,   -19,   -19,   -19,   -19,   -19,    52,   -61,   -61,   -61,
+       8,    30,    88,   -61,   -61,    89,    52,    41,   -61
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -664,25 +612,26 @@ static const yytype_int8 yydefact[] =
 {
        3,     0,     1,     0,     0,     0,     0,     0,     0,     0,
        0,     2,     4,     5,     6,     7,     8,     9,    10,     0,
-       0,     0,     0,     0,    19,     0,     0,    23,    22,     0,
+       0,     0,     0,     0,    19,     0,     0,    29,    28,     0,
        0,    11,    12,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    13,     0,     0,     0,     0,    30,
-      28,    29,    24,    25,    26,    27,     0,     0,    17,    18,
-      20,     0,     0,    14,    21,    16,     0,     0,     0,    15
+       0,     0,     0,    13,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    34,    30,    31,    32,    33,     0,
+      22,    23,    24,    25,    26,    27,     0,    17,    18,    20,
+       0,     0,    14,    21,    16,     0,     0,     0,    15
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -36,   -36,    -1,   -36,   -36,   -36,   -36,   -36,   -36,   -36,
-     -35,    12
+     -61,   -61,    -1,   -61,   -61,   -61,   -61,   -61,   -61,   -61,
+     -60,    93,   -18
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     1,    60,    12,    13,    14,    15,    16,    17,    18,
-      61,    30
+       0,     1,    69,    12,    13,    14,    15,    16,    17,    18,
+      70,    33,    34
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -690,36 +639,34 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      11,     3,     4,     5,     6,    19,     7,     8,     9,    10,
-       3,     4,     5,     6,    20,     7,     8,     9,    10,    27,
-      28,    21,    62,     3,     4,     5,     6,    63,     7,     8,
-       9,    10,    68,    24,    33,    34,    65,    35,    36,    38,
-      39,    37,    22,    29,    66,    42,    43,    -1,    -1,    69,
-      50,    51,    52,    53,    54,    55,    38,    39,    23,     2,
-      64,    64,    25,     3,     4,     5,     6,    64,     7,     8,
-       9,    10,    38,    39,    26,    31,    40,    41,    42,    43,
-      38,    39,    32,    45,    40,    41,    42,    43,    38,    39,
-      47,    46,    40,    41,    42,    43,    38,    39,    56,    48,
-      40,    41,    42,    43,    57,    58,    59,    49,     3,     4,
-       5,     6,    67,     7,     8,     9,    10,    38,    39,     0,
-       0,    40,    41,    42,    43,    44
+      11,    30,    39,    40,    41,    42,    71,    19,    37,    27,
+      28,    38,     3,     4,     5,     6,    77,     7,     8,     9,
+      10,    55,    56,    57,    58,    41,    42,    60,    61,    62,
+      63,    64,    65,    29,     3,     4,     5,     6,    72,     7,
+       8,     9,    10,    20,    21,     3,     4,     5,     6,    22,
+       7,     8,     9,    10,    23,    25,     3,     4,     5,     6,
+      74,     7,     8,     9,    10,    26,    36,    24,     2,    73,
+      73,    78,     3,     4,     5,     6,    73,     7,     8,     9,
+      10,    45,    31,    46,    47,    48,    49,    50,    39,    40,
+      41,    42,    39,    40,    41,    42,    75,    32,    44,    53,
+      39,    40,    41,    42,    51,    52,    67,    54,    39,    40,
+      41,    42,    43,    59,    66,    68,    35,     0,    76
 };
 
 static const yytype_int8 yycheck[] =
 {
-       1,     4,     5,     6,     7,    13,     9,    10,    11,    12,
-       4,     5,     6,     7,     4,     9,    10,    11,    12,     3,
-       4,     4,    57,     4,     5,     6,     7,    30,     9,    10,
-      11,    12,    67,    25,    22,    23,    30,     4,    26,    17,
-      18,    29,    27,    27,     8,    23,    24,    17,    18,    30,
-      38,    39,    40,    41,    42,    43,    17,    18,    27,     0,
-      61,    62,    27,     4,     5,     6,     7,    68,     9,    10,
-      11,    12,    17,    18,    27,    25,    21,    22,    23,    24,
-      17,    18,    25,    28,    21,    22,    23,    24,    17,    18,
-      28,    28,    21,    22,    23,    24,    17,    18,    29,    28,
-      21,    22,    23,    24,    29,    25,    25,    28,     4,     5,
-       6,     7,    29,     9,    10,    11,    12,    17,    18,    -1,
-      -1,    21,    22,    23,    24,    25
+       1,    19,    21,    22,    23,    24,    66,    13,    26,     3,
+       4,    29,     4,     5,     6,     7,    76,     9,    10,    11,
+      12,    39,    40,    41,    42,    23,    24,    45,    46,    47,
+      48,    49,    50,    27,     4,     5,     6,     7,    30,     9,
+      10,    11,    12,     4,     4,     4,     5,     6,     7,    27,
+       9,    10,    11,    12,    27,    27,     4,     5,     6,     7,
+      30,     9,    10,    11,    12,    27,     4,    25,     0,    70,
+      71,    30,     4,     5,     6,     7,    77,     9,    10,    11,
+      12,    14,    25,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    21,    22,    23,    24,     8,    25,    28,    28,
+      21,    22,    23,    24,    28,    28,    25,    28,    21,    22,
+      23,    24,    25,    29,    29,    25,    23,    -1,    29
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -729,10 +676,11 @@ static const yytype_int8 yystos[] =
        0,    32,     0,     4,     5,     6,     7,     9,    10,    11,
       12,    33,    34,    35,    36,    37,    38,    39,    40,    13,
        4,     4,    27,    27,    25,    27,    27,     3,     4,    27,
-      42,    25,    25,    42,    42,     4,    42,    42,    17,    18,
-      21,    22,    23,    24,    25,    28,    28,    28,    28,    28,
-      42,    42,    42,    42,    42,    42,    29,    29,    25,    25,
-      33,    41,    41,    30,    33,    30,     8,    29,    41,    30
+      43,    25,    25,    42,    43,    42,     4,    43,    43,    21,
+      22,    23,    24,    25,    28,    14,    16,    17,    18,    19,
+      20,    28,    28,    28,    28,    43,    43,    43,    43,    29,
+      43,    43,    43,    43,    43,    43,    29,    25,    25,    33,
+      41,    41,    30,    33,    30,     8,    29,    41,    30
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
@@ -740,8 +688,8 @@ static const yytype_int8 yyr1[] =
 {
        0,    31,    32,    32,    33,    33,    33,    33,    33,    33,
       33,    34,    34,    35,    36,    36,    37,    38,    39,    40,
-      41,    41,    42,    42,    42,    42,    42,    42,    42,    42,
-      42
+      41,    41,    42,    42,    42,    42,    42,    42,    43,    43,
+      43,    43,    43,    43,    43
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -749,8 +697,8 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     2,     0,     1,     1,     1,     1,     1,     1,
        1,     3,     3,     4,     7,    11,     7,     5,     5,     2,
-       1,     2,     1,     1,     3,     3,     3,     3,     3,     3,
-       3
+       1,     2,     3,     3,     3,     3,     3,     3,     1,     1,
+       3,     3,     3,     3,     3
 };
 
 
@@ -1214,165 +1162,219 @@ yyreduce:
   switch (yyn)
     {
   case 11: /* declaration: KEYWORD_INT IDENTIFIER SEMICOLON  */
-#line 110 "blitz.y"
+#line 56 "blitz.y"
                                      {
-        emit_declaration((yyvsp[-1].str), "INT");
+        emit_declaration((yyvsp[-1].str), "int");
     }
-#line 1222 "blitz.tab.c"
+#line 1170 "blitz.tab.c"
     break;
 
   case 12: /* declaration: KEYWORD_NUM IDENTIFIER SEMICOLON  */
-#line 113 "blitz.y"
+#line 59 "blitz.y"
                                        {
-        emit_declaration((yyvsp[-1].str), "NUM");
+        emit_declaration((yyvsp[-1].str), "num");
     }
-#line 1230 "blitz.tab.c"
+#line 1178 "blitz.tab.c"
     break;
 
   case 13: /* assignment: IDENTIFIER OP_ASSIGN expression SEMICOLON  */
-#line 119 "blitz.y"
+#line 65 "blitz.y"
                                               {
-        emit_assignment((yyvsp[-3].str), (yyvsp[-1].str));
+        char* var_type = get_symbol_type((yyvsp[-3].str));
+        char* expr_type = get_symbol_type((yyvsp[-1].str)); 
+        if (var_type == NULL) {
+            yyerror("Undeclared variable used in assignment");
+        } else if (expr_type != NULL && strcmp(var_type, expr_type) != 0) {
+            yyerror("Type mismatch in assignment");
+        } else if (expr_type == NULL) {
+            emit_assignment((yyvsp[-3].str), "num"); // Assigning a constant
+        } else {
+            emit_assignment((yyvsp[-3].str), (yyvsp[-1].str));
+        }
     }
-#line 1238 "blitz.tab.c"
+#line 1196 "blitz.tab.c"
     break;
 
-  case 14: /* if_statement: KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE  */
-#line 125 "blitz.y"
-                                                                     {
-        emit_if_start((yyvsp[-4].str));
-        (yyval.str) = (yyvsp[-1].str);
-        emit_if_end();
+  case 14: /* if_statement: KEYWORD_IF LPAREN condition RPAREN LBRACE statement_list RBRACE  */
+#line 81 "blitz.y"
+                                                                    {
+        emit("IF %s THEN\n", (yyvsp[-4].str));
+        emit("%s", (yyvsp[-1].str));
+        emit("ENDIF\n");
+    }
+#line 1206 "blitz.tab.c"
+    break;
+
+  case 15: /* if_statement: KEYWORD_IF LPAREN condition RPAREN LBRACE statement_list RBRACE KEYWORD_ELSE LBRACE statement_list RBRACE  */
+#line 86 "blitz.y"
+                                                                                                                {
+        emit("IF %s THEN\n", (yyvsp[-8].str));
+        emit("%s", (yyvsp[-5].str));
+        emit("ELSE\n");
+        emit("%s", (yyvsp[-1].str));
+        emit("ENDIF\n");
+    }
+#line 1218 "blitz.tab.c"
+    break;
+
+  case 16: /* while_statement: KEYWORD_WHILE LPAREN condition RPAREN LBRACE statement_list RBRACE  */
+#line 96 "blitz.y"
+                                                                       {
+        emit("WHILE %s DO\n", (yyvsp[-4].str));
+        emit("%s", (yyvsp[-1].str));
+        emit("ENDWHILE\n");
+    }
+#line 1228 "blitz.tab.c"
+    break;
+
+  case 17: /* read_statement: KEYWORD_READ LPAREN IDENTIFIER RPAREN SEMICOLON  */
+#line 104 "blitz.y"
+                                                    {
+        if (get_symbol_type((yyvsp[-2].str)) == NULL) {
+            yyerror("Undeclared variable used in read statement");
+        } else {
+            emit("READ %s\n", (yyvsp[-2].str));
+        }
+    }
+#line 1240 "blitz.tab.c"
+    break;
+
+  case 18: /* write_statement: KEYWORD_WRITE LPAREN expression RPAREN SEMICOLON  */
+#line 114 "blitz.y"
+                                                     {
+        emit("WRITE %s\n", (yyvsp[-2].str));
     }
 #line 1248 "blitz.tab.c"
     break;
 
-  case 15: /* if_statement: KEYWORD_IF LPAREN expression RPAREN LBRACE statement_list RBRACE KEYWORD_ELSE LBRACE statement_list RBRACE  */
-#line 130 "blitz.y"
-                                                                                                                 {
-        emit_if_start((yyvsp[-8].str));
-        (yyval.str) = (yyvsp[-5].str);
-        emit_else_start();
-        (yyval.str) = (yyvsp[-1].str);
-        emit_if_end();
-    }
-#line 1260 "blitz.tab.c"
-    break;
-
-  case 16: /* while_statement: KEYWORD_WHILE LPAREN expression RPAREN LBRACE statement_list RBRACE  */
-#line 140 "blitz.y"
-                                                                        {
-        emit_while_start((yyvsp[-4].str));
-        (yyval.str) = (yyvsp[-1].str);
-        emit_while_end();
-    }
-#line 1270 "blitz.tab.c"
-    break;
-
-  case 17: /* read_statement: KEYWORD_READ LPAREN IDENTIFIER RPAREN SEMICOLON  */
-#line 148 "blitz.y"
-                                                    {
-        emit_read((yyvsp[-2].str));
-    }
-#line 1278 "blitz.tab.c"
-    break;
-
-  case 18: /* write_statement: KEYWORD_WRITE LPAREN expression RPAREN SEMICOLON  */
-#line 154 "blitz.y"
-                                                     {
-        emit_write((yyvsp[-2].str));
-    }
-#line 1286 "blitz.tab.c"
-    break;
-
   case 19: /* stop_statement: KEYWORD_STOP SEMICOLON  */
-#line 160 "blitz.y"
+#line 120 "blitz.y"
                            {
-        emit_stop();
+        emit("STOP\n");
     }
-#line 1294 "blitz.tab.c"
+#line 1256 "blitz.tab.c"
     break;
 
-  case 22: /* expression: IDENTIFIER  */
-#line 171 "blitz.y"
-               {
-        (yyval.str) = strdup_safe((yyvsp[0].str));
+  case 22: /* condition: expression OP_EQUAL expression  */
+#line 131 "blitz.y"
+                                   {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), "=");
+        (yyval.str) = strdup_safe("RESULT");
     }
-#line 1302 "blitz.tab.c"
+#line 1265 "blitz.tab.c"
     break;
 
-  case 23: /* expression: NUMBER  */
-#line 174 "blitz.y"
-             {
-        (yyval.str) = strdup_safe(yytext);
+  case 23: /* condition: expression OP_NOT_EQUAL expression  */
+#line 135 "blitz.y"
+                                         {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), "!=");
+        (yyval.str) = strdup_safe("RESULT");
+    }
+#line 1274 "blitz.tab.c"
+    break;
+
+  case 24: /* condition: expression OP_LESS_THAN expression  */
+#line 139 "blitz.y"
+                                         {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), "<");
+        (yyval.str) = strdup_safe("RESULT");
+    }
+#line 1283 "blitz.tab.c"
+    break;
+
+  case 25: /* condition: expression OP_GREATER_THAN expression  */
+#line 143 "blitz.y"
+                                            {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), ">");
+        (yyval.str) = strdup_safe("RESULT");
+    }
+#line 1292 "blitz.tab.c"
+    break;
+
+  case 26: /* condition: expression OP_LESS_EQUAL expression  */
+#line 147 "blitz.y"
+                                          {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), "<=");
+        (yyval.str) = strdup_safe("RESULT");
+    }
+#line 1301 "blitz.tab.c"
+    break;
+
+  case 27: /* condition: expression OP_GREATER_EQUAL expression  */
+#line 151 "blitz.y"
+                                             {
+        emit_comparison((yyvsp[-2].str), (yyvsp[0].str), ">=");
+        (yyval.str) = strdup_safe("RESULT");
     }
 #line 1310 "blitz.tab.c"
     break;
 
-  case 24: /* expression: expression OP_PLUS expression  */
-#line 177 "blitz.y"
+  case 28: /* expression: IDENTIFIER  */
+#line 158 "blitz.y"
+               {
+        if (get_symbol_type((yyvsp[0].str)) == NULL) {
+            yyerror("Undeclared variable used in expression");
+        } else {
+            (yyval.str) = strdup_safe((yyvsp[0].str));
+        }
+    }
+#line 1322 "blitz.tab.c"
+    break;
+
+  case 29: /* expression: NUMBER_CONST  */
+#line 165 "blitz.y"
+                   {
+        (yyval.str) = strdup_safe(yytext);
+    }
+#line 1330 "blitz.tab.c"
+    break;
+
+  case 30: /* expression: expression OP_PLUS expression  */
+#line 168 "blitz.y"
                                     {
-        printf("ADD %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
+        emit("ADD %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
         (yyval.str) = strdup_safe("RESULT");
     }
-#line 1319 "blitz.tab.c"
+#line 1339 "blitz.tab.c"
     break;
 
-  case 25: /* expression: expression OP_MINUS expression  */
-#line 181 "blitz.y"
+  case 31: /* expression: expression OP_MINUS expression  */
+#line 172 "blitz.y"
                                      {
-        printf("SUB %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
+        emit("SUB %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
         (yyval.str) = strdup_safe("RESULT");
     }
-#line 1328 "blitz.tab.c"
+#line 1348 "blitz.tab.c"
     break;
 
-  case 26: /* expression: expression OP_MULTIPLY expression  */
-#line 185 "blitz.y"
+  case 32: /* expression: expression OP_MULTIPLY expression  */
+#line 176 "blitz.y"
                                         {
-        printf("MUL %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
+        emit("MUL %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
         (yyval.str) = strdup_safe("RESULT");
     }
-#line 1337 "blitz.tab.c"
+#line 1357 "blitz.tab.c"
     break;
 
-  case 27: /* expression: expression OP_DIVIDE expression  */
-#line 189 "blitz.y"
+  case 33: /* expression: expression OP_DIVIDE expression  */
+#line 180 "blitz.y"
                                       {
-        printf("DIV %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
+        emit("DIV %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
         (yyval.str) = strdup_safe("RESULT");
     }
-#line 1346 "blitz.tab.c"
+#line 1366 "blitz.tab.c"
     break;
 
-  case 28: /* expression: expression OP_LESS_THAN expression  */
-#line 193 "blitz.y"
-                                         {
-        printf("LESS_THAN %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
-        (yyval.str) = strdup_safe("RESULT");
-    }
-#line 1355 "blitz.tab.c"
-    break;
-
-  case 29: /* expression: expression OP_GREATER_THAN expression  */
-#line 197 "blitz.y"
-                                            {
-        printf("GREATER_THAN %s %s\n", (yyvsp[-2].str), (yyvsp[0].str));
-        (yyval.str) = strdup_safe("RESULT");
-    }
-#line 1364 "blitz.tab.c"
-    break;
-
-  case 30: /* expression: LPAREN expression RPAREN  */
-#line 201 "blitz.y"
+  case 34: /* expression: LPAREN expression RPAREN  */
+#line 184 "blitz.y"
                                {
         (yyval.str) = (yyvsp[-1].str);
     }
-#line 1372 "blitz.tab.c"
+#line 1374 "blitz.tab.c"
     break;
 
 
-#line 1376 "blitz.tab.c"
+#line 1378 "blitz.tab.c"
 
       default: break;
     }
@@ -1565,20 +1567,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 206 "blitz.y"
+#line 189 "blitz.y"
 
-
-void yyerror(const char* s) {
-    fprintf(stderr, "Error: %s at line %d\n", s, yylineno);
-}
-
-int main(int argc, char **argv) {
-    ++argv, --argc;  /* skip over program name */
-    if (argc > 0)
-        yyin = fopen(argv[0], "r");
-    else
-        yyin = stdin;
-
-    yyparse();
-    return 0;
-}

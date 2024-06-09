@@ -1,5 +1,6 @@
+#line 1 "blitz.lex.c"
 
-#line 2 "lex.yy.c"
+#line 3 "blitz.lex.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -488,8 +489,8 @@ char *yytext;
 
 int line_num = 1;
 int col_num = 1;
-#line 491 "lex.yy.c"
-#line 492 "lex.yy.c"
+#line 492 "blitz.lex.c"
+#line 493 "blitz.lex.c"
 
 #define INITIAL 0
 
@@ -709,7 +710,7 @@ YY_DECL
 #line 16 "blitz.l"
 
 
-#line 712 "lex.yy.c"
+#line 713 "blitz.lex.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -935,7 +936,7 @@ YY_RULE_SETUP
 #line 53 "blitz.l"
 ECHO;
 	YY_BREAK
-#line 938 "lex.yy.c"
+#line 939 "blitz.lex.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

@@ -54,7 +54,7 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    NUMBER = 258,                  /* NUMBER  */
+    NUMBER_CONST = 258,            /* NUMBER_CONST  */
     IDENTIFIER = 259,              /* IDENTIFIER  */
     KEYWORD_INT = 260,             /* KEYWORD_INT  */
     KEYWORD_NUM = 261,             /* KEYWORD_NUM  */
@@ -90,7 +90,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 71 "blitz.y"
+#line 17 "blitz.y"
 
     int num;
     char* str;
