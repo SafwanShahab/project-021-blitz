@@ -1,0 +1,13 @@
+// This is a single-line comment
+num x; // This is another comment
+int y;
+x := 5; // Assign 5 to x
+if (x > y) { // Check if x is greater than y
+    write(x); // Write the value of x
+} else {
+    read(y); // Read a value into y
+}
+while (x < 10) {
+    x := x + 1;
+}
+stop;
